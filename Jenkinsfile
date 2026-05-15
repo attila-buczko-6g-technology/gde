@@ -28,39 +28,39 @@ pipeline {
         }
 
         stage('Build & Test in builder container') {
-        steps {
-            sh '''
-                docker exec blog-builder bash -lc "
-                    rm -rf /tmp/build-workspace &&
-                    cp -a /workspace /tmp/build-workspace &&
-                    cd /tmp/build-workspace/backend &&
-                    bash ./gradlew --no-daemon clean test bootJar &&
-                    rm -rf /workspace/backend/build &&
-                    cp -a build /workspace/backend/
-                "
-            '''
-        }
-        post {
+            steps {
+                sh '''
+                    docker exec blog-builder bash -lc "
+                        rm -rf /tmp/build-workspace &&
+                        cp -a /workspace /tmp/build-workspace &&
+                        cd /tmp/build-workspace/backend &&
+                        bash ./gradlew --no-daemon clean test bootJar
+                    "
+                '''
+            }
+
+            post {
                 always {
                     sh '''
+                        rm -rf backend/build/test-results
                         mkdir -p backend/build
-                        docker cp blog-builder:/workspace/backend/build/test-results backend/build/ || true
+                        docker cp blog-builder:/tmp/build-workspace/backend/build/test-results backend/build/ || true
                     '''
                     junit allowEmptyResults: true,
                         testResults: 'backend/build/test-results/test/*.xml'
                 }
             }
-    }
+        }
 
         stage('Copy build artifact from builder') {
             steps {
                 sh '''
+                    rm -rf backend/build/libs
                     mkdir -p backend/build/libs
-                    docker cp blog-builder:/workspace/backend/build/libs/. backend/build/libs/
+                    docker cp blog-builder:/tmp/build-workspace/backend/build/libs/. backend/build/libs/
                 '''
             }
         }
-
         stage('Docker image build') {
             steps {
                 sh '''
