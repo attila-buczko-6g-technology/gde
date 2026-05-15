@@ -182,10 +182,10 @@
         showView('new-post');
     }
 
-    function loadPostIntoForm(id) {
-        apiCall('GET', `/api/posts/${id}`).done(function (p) {
+    function loadPostIntoForm(state) {
+        apiCall('GET', `/api/posts/${state.currentPostId}`).done(function (p) {
             $('#postFormTitle').text('Bejegyzés szerkesztése');
-            $('#postId').val(p.id);
+            $('#postId').val(p.currentPostId);
             $('#postTitle').val(p.title);
             $('#postContent').val(p.content);
 
