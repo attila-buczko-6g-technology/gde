@@ -34,17 +34,19 @@ pipeline {
         }
 
         stage('Build & Test in builder container') {
-            steps {
-                sh '''
-                    docker exec blog-builder bash -lc "
-                        cd /workspace/backend &&
-                        chmod +x gradlew &&
-                        ./gradlew --no-daemon clean test bootJar
-                    "
-                '''
-            }
-
-            post {
+        steps {
+            sh '''
+                docker exec blog-builder bash -lc "
+                    rm -rf /tmp/build-workspace &&
+                    cp -a /workspace /tmp/build-workspace &&
+                    cd /tmp/build-workspace/backend &&
+                    bash ./gradlew --no-daemon clean test bootJar &&
+                    rm -rf /workspace/backend/build &&
+                    cp -a build /workspace/backend/
+                "
+            '''
+        }
+        post {
                 always {
                     sh '''
                         mkdir -p backend/build
@@ -54,7 +56,7 @@ pipeline {
                         testResults: 'backend/build/test-results/test/*.xml'
                 }
             }
-        }
+    }
 
         stage('Copy build artifact from builder') {
             steps {
