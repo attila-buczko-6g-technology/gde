@@ -33,6 +33,7 @@ pipeline {
             }
         }
 
+
         stage('Build & Test in builder container') {
             steps {
                 sh '''
@@ -40,6 +41,12 @@ pipeline {
                         rm -rf /tmp/build-workspace &&
                         cp -a /workspace /tmp/build-workspace &&
                         cd /tmp/build-workspace/backend &&
+
+                        if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+                            echo 'Gradle wrapper jar missing, generating wrapper...'
+                            gradle wrapper
+                        fi &&
+
                         bash ./gradlew --no-daemon clean test bootJar
                     "
                 '''
