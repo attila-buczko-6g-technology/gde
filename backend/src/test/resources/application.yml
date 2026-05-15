@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:blogdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    hu.blogplatform: INFO
+
+app:
+  jwt:
+    secret: teszt-jwt-titkos-kulcs-legalabb-32-karakter-hosszu
+    expiration-ms: 3600000

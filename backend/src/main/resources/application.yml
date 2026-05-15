@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: blogplatform
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/blogdb}
+    username: ${DB_USER:bloguser}
+    password: ${DB_PASSWORD:blogpass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # Az SQL script kezeli a sémát, a JPA csak validál.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+    open-in-view: false
+
+  sql:
+    init:
+      mode: ${SQL_INIT_MODE:never}
+      schema-locations: classpath:schema.sql
+
+# JWT konfiguráció
+app:
+  jwt:
+    # Legalább 32 karakteres titkos kulcs
+    secret: ${JWT_SECRET:valtoztasd-meg-ezt-a-titkos-kulcsot-legalabb-32-karakter}
+    # 24 óra milliszekundumban
+    expiration-ms: 86400000
+
+logging:
+  level:
+    hu.blogplatform: INFO
+    org.springframework.security: INFO

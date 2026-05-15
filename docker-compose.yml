@@ -4,12 +4,66 @@
 #   docker compose up -d --build
 #
 # Szolgáltatások:
+#   postgres  : PostgreSQL adatbázis (port 5432)
+#   builder   : Java 21 + Gradle fejlesztői build környezet
 #   jenkins   : Jenkins LTS Docker CLI-vel (port 8081)
+#   app       : a Jenkins által épített/futtatott Spring Boot alkalmazás (port 8080)
+#               – kezdetben üres image, a Jenkins első buildje után indul el.
 # =====================================================================
 services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: blog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: blogdb
+      POSTGRES_USER: bloguser
+      POSTGRES_PASSWORD: blogpass
+      TZ: Europe/Budapest
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Az init script automatikusan lefut az első induláskor.
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - blognet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bloguser -d blogdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  builder:
+    build:
+      context: ./docker/builder
+      args:
+        USER_ID: "1000"
+        GROUP_ID: "1000"
+    container_name: blog-builder
+    working_dir: /workspace
+    # A teljes projekt mountolva van, a builder és a Jenkins ugyanazon a kódon dolgozik.
+    volumes:
+      - ./:/workspace
+      - gradle-cache:/home/dev/.gradle
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/blogdb
+      DB_USER: bloguser
+      DB_PASSWORD: blogpass
+      TZ: Europe/Budapest
+    depends_on:
+      - postgres
+    networks:
+      - blognet
+    tty: true
+    stdin_open: true
+
   jenkins:
     build:
       context: ./docker/jenkins
+    container_name: blog-jenkins
+    restart: unless-stopped
     environment:
       JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:-admin}
       GIT_REPO_URL: ${GIT_REPO_URL:-https://github.com/attila-buczko-6g-technology/gde.git}
@@ -23,6 +77,17 @@ services:
       # A repó és a Docker socket a host-ról
       - ./:/workspace:ro
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - blognet
+    depends_on:
+      - postgres
 
 volumes:
+  pgdata:
   jenkins-home:
+  gradle-cache:
+
+networks:
+  blognet:
+    driver: bridge
+    name: blognet
