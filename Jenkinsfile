@@ -30,11 +30,11 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-                sh 'git log -1 --oneline'
-            }
+        steps {
+            git branch: 'main',
+                url: 'https://github.com/attila-buczko-6g-technology/gde.git'
+
+            sh 'git log -1 --oneline'
         }
 
         stage('Build & Test (Gradle)') {

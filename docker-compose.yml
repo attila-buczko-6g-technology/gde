@@ -11,7 +11,6 @@
 #               – kezdetben üres image, a Jenkins első buildje után indul el.
 # =====================================================================
 services:
-
   postgres:
     image: postgres:16-alpine
     container_name: blog-postgres
@@ -60,8 +59,11 @@ services:
     stdin_open: true
 
   jenkins:
+    user: root
     build:
       context: ./docker/jenkins
+      args:
+        DOCKER_GID: ${DOCKER_GID:-999}
     container_name: blog-jenkins
     restart: unless-stopped
     environment:
@@ -74,8 +76,6 @@ services:
       - "50000:50000"
     volumes:
       - jenkins-home:/var/jenkins_home
-      # A repó és a Docker socket a host-ról
-      - ./:/workspace:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - blognet
