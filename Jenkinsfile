@@ -18,13 +18,7 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-                sh 'git log -1 --oneline'
-            }
-        }
-
+    
         stage('Sync workspace to builder') {
             steps {
                 sh '''
