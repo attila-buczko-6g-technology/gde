@@ -1,0 +1,28 @@
+# =====================================================================
+# Blogplatform – teljes fejlesztői és CI/CD környezet
+#
+#   docker compose up -d --build
+#
+# Szolgáltatások:
+#   jenkins   : Jenkins LTS Docker CLI-vel (port 8081)
+# =====================================================================
+services:
+  jenkins:
+    build:
+      context: ./docker/jenkins
+    environment:
+      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:-admin}
+      GIT_REPO_URL: ${GIT_REPO_URL:-https://github.com/attila-buczko-6g-technology/gde.git}
+      GIT_BRANCH: ${GIT_BRANCH:-*/main}
+      TZ: Europe/Budapest
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins-home:/var/jenkins_home
+      # A repó és a Docker socket a host-ról
+      - ./:/workspace:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  jenkins-home:

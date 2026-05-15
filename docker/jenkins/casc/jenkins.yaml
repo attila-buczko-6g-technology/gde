@@ -1,0 +1,50 @@
+# =====================================================================
+# Jenkins Configuration-as-Code (JCasC)
+#
+# Az induló Jenkins itt jön létre konfiguráció nélkül – a setup wizard
+# kihagyásával egy admin felhasználót és egy Pipeline jobot készítünk.
+# A pipeline a megadott GitHub repó-ból, vagy a helyi /workspace
+# mappából (lokális Git remote) buildeli a projektet.
+# =====================================================================
+jenkins:
+  systemMessage: "Blogplatform CI/CD – Spring Boot + Gradle"
+  numExecutors: 2
+  mode: NORMAL
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "${JENKINS_ADMIN_PASSWORD:-admin}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+    url: "http://localhost:8081/"
+
+jobs:
+  - script: >
+      pipelineJob('blogplatform-pipeline') {
+        description('Blogplatform CI/CD pipeline')
+        triggers {
+          // GitHub repó polling – percenként figyeli a változásokat
+          scm('H/1 * * * *')
+        }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url(System.getenv('GIT_REPO_URL') ?: 'https://github.com/attila-buczko-6g-technology/gde.git')
+                }
+                branch(System.getenv('GIT_BRANCH') ?: '*/main')
+                extensions { }
+              }
+            }
+            scriptPath('Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }
