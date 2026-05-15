@@ -178,6 +178,8 @@
         $('#postId').val('');
         $('#postTitle').val('');
         $('#postContent').val('');
+
+        showView('new-post');
     }
 
     function loadPostIntoForm(id) {
@@ -186,6 +188,7 @@
             $('#postId').val(p.id);
             $('#postTitle').val(p.title);
             $('#postContent').val(p.content);
+
             showView('new-post');
         });
     }
