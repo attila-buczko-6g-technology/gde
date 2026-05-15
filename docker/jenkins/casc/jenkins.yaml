@@ -44,7 +44,6 @@ jobs:
               }
             }
             scriptPath('Jenkinsfile')
-            lightweight(true)
           }
         }
       }
