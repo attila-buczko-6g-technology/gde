@@ -39,16 +39,26 @@ pipeline {
                 sh '''
                     docker exec blog-builder bash -lc "
                         rm -rf /tmp/build-workspace &&
-                        cp -a /workspace /tmp/build-workspace &&
+                        mkdir -p /tmp/build-workspace &&
+
+                        tar \
+                        --exclude='.git' \
+                        --exclude='backend/.gradle' \
+                        --exclude='backend/build' \
+                        --exclude='**/.gradle' \
+                        --exclude='**/build' \
+                        -C /workspace \
+                        -cf - . | tar -C /tmp/build-workspace -xf - &&
+
                         cd /tmp/build-workspace/backend &&
 
-                        if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-                            echo 'Gradle wrapper jar missing, generating wrapper...'
+                        mkdir -p gradle/wrapper &&
 
+                        if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+                            echo 'Gradle wrapper jar missing, downloading wrapper jar...'
                             curl -L \
-                                https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar \
-                                -o gradle/wrapper/gradle-wrapper.jar
-                            bash ./gradlew wrapper
+                            https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar \
+                            -o gradle/wrapper/gradle-wrapper.jar
                         fi &&
 
                         bash ./gradlew --no-daemon clean test bootJar
