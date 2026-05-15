@@ -44,7 +44,11 @@ pipeline {
 
                         if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
                             echo 'Gradle wrapper jar missing, generating wrapper...'
-                            gradle wrapper
+
+                            curl -L \
+                                https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar \
+                                -o backend/gradle/wrapper/gradle-wrapper.jar
+                            bash ./gradlew wrapper
                         fi &&
 
                         bash ./gradlew --no-daemon clean test bootJar
