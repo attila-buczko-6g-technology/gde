@@ -47,7 +47,7 @@ pipeline {
 
                             curl -L \
                                 https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar \
-                                -o backend/gradle/wrapper/gradle-wrapper.jar
+                                -o gradle/wrapper/gradle-wrapper.jar
                             bash ./gradlew wrapper
                         fi &&
 
