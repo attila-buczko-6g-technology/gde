@@ -25,27 +25,43 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
-            agent {
-                docker {
-                    image 'eclipse-temurin:21-jdk'
-                    reuseNode true
-                    args '-v /var/jenkins_home/.gradle:/root/.gradle'
-                }
-            }
-
+        stage('Sync workspace to builder') {
             steps {
-                dir('backend') {
-                    sh 'chmod +x gradlew'
-                    sh './gradlew --no-daemon clean test bootJar'
-                }
+                sh '''
+                    docker cp . blog-builder:/workspace
+                '''
+            }
+        }
+
+        stage('Build & Test in builder container') {
+            steps {
+                sh '''
+                    docker exec blog-builder bash -lc "
+                        cd /workspace/backend &&
+                        chmod +x gradlew &&
+                        ./gradlew --no-daemon clean test bootJar
+                    "
+                '''
             }
 
             post {
                 always {
+                    sh '''
+                        mkdir -p backend/build
+                        docker cp blog-builder:/workspace/backend/build/test-results backend/build/ || true
+                    '''
                     junit allowEmptyResults: true,
                         testResults: 'backend/build/test-results/test/*.xml'
                 }
+            }
+        }
+
+        stage('Copy build artifact from builder') {
+            steps {
+                sh '''
+                    mkdir -p backend/build/libs
+                    docker cp blog-builder:/workspace/backend/build/libs/. backend/build/libs/
+                '''
             }
         }
 
