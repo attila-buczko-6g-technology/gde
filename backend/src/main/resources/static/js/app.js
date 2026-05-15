@@ -67,7 +67,10 @@
 
     function showView(view) {
         $('[data-view-content]').addClass('d-none');
-        $(`[data-view-content="${view}"]`).removeClass('d-none');
+        if(view === 'edit-post')
+            $(`[data-view-content="new-post"]`).removeClass('d-none');
+        else
+            $(`[data-view-content="${view}"]`).removeClass('d-none');
         $('#alertContainer').empty();
 
         if (view === 'list') loadPosts(0);
@@ -178,25 +181,28 @@
         $('#postId').val('');
         $('#postTitle').val('');
         $('#postContent').val('');
-
-        showView('new-post');
     }
 
-    function loadPostIntoForm(state) {
-        apiCall('GET', `/api/posts/${state.currentPostId}`).done(function (p) {
+    function loadPostIntoForm(id) {
+        apiCall('GET', `/api/posts/${id}`).done(function (p) {
             $('#postFormTitle').text('Bejegyzés szerkesztése');
-            $('#postId').val(p.currentPostId);
+            $('#postId').val(p.id);
             $('#postTitle').val(p.title);
             $('#postContent').val(p.content);
-
-            showView('new-post');
+            showView('edit-post');
         });
     }
 
     // ---------- Esemény-kötések ----------
     $(document).on('click', '[data-view]', function (e) {
         e.preventDefault();
+
         const view = $(this).data('view');
+
+        if (view === 'new-post') {
+            resetPostForm();
+        }
+
         showView(view);
     });
 
